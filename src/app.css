@@ -2,11 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
-/* recreate the bootstrap container class */
+/* recreate the bootstrap container class but, make the container slightly transparent with a background color of whitesmoke */
 .container {
-  max-width: 1140px;
+  width: 100%;
   margin-right: auto;
   margin-left: auto;
-  padding-right: 15px;
-  padding-left: 15px;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  background-color: rgba(245, 245, 245, 0.8);
+  text-align: center;
+}
+
+/* recreate the bootstrap jumbotron and lead classes */
+.jumbotron {
+  padding: 2rem 1rem;
+  margin-bottom: 2rem;
+  background-color: #e9ecef;
+  border-radius: 0.3rem;
+}
+
+.lead {
+  font-size: 1.25rem;
+  font-weight: 300;
 }
