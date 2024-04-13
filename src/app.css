@@ -1,6 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Imbue:opsz,wght@10..100,100..900&family=Orbitron:wght@400..900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+body {
+  background-image: url("/public/images/photoStudio.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  font-family: 'Orbitron', sans-serif !important;
+
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Imbue', sans-serif !important;
+}
+
+/* Create rules so that the sites footer spans the width of the page */
+footer {
+  width: 100%;
+  background-color: #343a40;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+
 
 /* recreate the bootstrap container class but, make the container slightly transparent with a background color of whitesmoke */
 .container {
@@ -24,4 +55,13 @@
 .lead {
   font-size: 1.25rem;
   font-weight: 300;
+}
+
+
+
+/* using WCAG create rules to make the whole site responsive */
+@media (min-width: 576px) {
+  .container {
+    max-width: 540px;
+  }
 }
