@@ -7,8 +7,8 @@
 <header>
   <!-- Create section with an id of appHeader along with an h1 for the app name and an h2 for the tagline styled with tailwind css classes use placeholder text -->
   <section id="appHeader" class="jumbotron">
-    <h1 class="text-4xl font-bold text-center">SvelteKit</h1>
-    <h2 class="text-2xl text-center">The next big thing in web development</h2>
+    <h1 class="text-4xl font-bold text-center">PicPerfecto</h1>
+    <h2 class="text-2xl text-center">Effortless Visual Perfection</h2>
   </section>
 </header>
 <main>
