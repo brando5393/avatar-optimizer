@@ -1,6 +1,7 @@
 <script>
   import Copyright from "./components/Copyright.svelte";
   import CoffeeButton from "./components/CoffeeButton.svelte";
+  import ControlPanel from "./components/ControlPanel.svelte";
 </script>
 
 <header>
@@ -13,7 +14,9 @@
 <main>
   <!--Create a section called appCContent-->
   <section id="appContent">
-    <div class="container"></div>
+    <div class="container">
+      <ControlPanel />
+    </div>
   </section>
 </main>
 <footer>
