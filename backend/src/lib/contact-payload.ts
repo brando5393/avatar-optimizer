@@ -6,6 +6,13 @@ export interface ContactPayload {
   message: string;
   email?: string;
   turnstileToken: string;
+  /**
+   * CSS honeypot — a field real users never see or fill in (hidden
+   * off-screen, aria-hidden, excluded from tab order). Bots that fill every
+   * field they find populate it. Any non-empty value here means: accept the
+   * request to avoid tipping the bot off, but drop it silently — never send.
+   */
+  website?: string;
 }
 
 /** Validates an untrusted parsed JSON body before it touches SES or Turnstile. */
@@ -32,5 +39,14 @@ export function isValidContactPayload(value: unknown): value is ContactPayload {
     return false;
   }
 
+  if (candidate.website !== undefined && typeof candidate.website !== "string") {
+    return false;
+  }
+
   return true;
+}
+
+/** True when the honeypot field was filled in — a near-certain sign of a bot. */
+export function isHoneypotFilled(payload: ContactPayload): boolean {
+  return typeof payload.website === "string" && payload.website.trim().length > 0;
 }

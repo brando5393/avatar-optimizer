@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isValidContactPayload, MAX_MESSAGE_LENGTH } from "../src/lib/contact-payload";
+import { isHoneypotFilled, isValidContactPayload, MAX_MESSAGE_LENGTH } from "../src/lib/contact-payload";
 
 describe("isValidContactPayload", () => {
   it("accepts a message and turnstile token with no email", () => {
@@ -10,6 +10,11 @@ describe("isValidContactPayload", () => {
     expect(
       isValidContactPayload({ message: "Hello", turnstileToken: "tok", email: "a@example.com" }),
     ).toBe(true);
+  });
+
+  it("accepts an empty or filled honeypot field without rejecting the shape", () => {
+    expect(isValidContactPayload({ message: "Hello", turnstileToken: "tok", website: "" })).toBe(true);
+    expect(isValidContactPayload({ message: "Hello", turnstileToken: "tok", website: "spam" })).toBe(true);
   });
 
   it("rejects a missing or empty message", () => {
@@ -33,10 +38,28 @@ describe("isValidContactPayload", () => {
     ).toBe(false);
   });
 
+  it("rejects a non-string honeypot field", () => {
+    expect(isValidContactPayload({ message: "Hello", turnstileToken: "tok", website: 123 })).toBe(false);
+  });
+
   it("rejects non-object input without throwing", () => {
     expect(isValidContactPayload(null)).toBe(false);
     expect(isValidContactPayload("hello")).toBe(false);
     expect(isValidContactPayload(42)).toBe(false);
     expect(isValidContactPayload(undefined)).toBe(false);
+  });
+});
+
+describe("isHoneypotFilled", () => {
+  it("is false when the field is absent or empty", () => {
+    expect(isHoneypotFilled({ message: "Hello", turnstileToken: "tok" })).toBe(false);
+    expect(isHoneypotFilled({ message: "Hello", turnstileToken: "tok", website: "" })).toBe(false);
+    expect(isHoneypotFilled({ message: "Hello", turnstileToken: "tok", website: "   " })).toBe(false);
+  });
+
+  it("is true when a bot fills in the trap field", () => {
+    expect(isHoneypotFilled({ message: "Hello", turnstileToken: "tok", website: "https://spam.example" })).toBe(
+      true,
+    );
   });
 });

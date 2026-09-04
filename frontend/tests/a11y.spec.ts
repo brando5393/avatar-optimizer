@@ -42,6 +42,14 @@ for (const colorScheme of ["light", "dark"] as const) {
     await expect(page.getByLabel(/what's on your mind/i)).toBeVisible();
     await expect(page.getByLabel(/your email/i)).toBeVisible();
 
+    // Turnstile is blocked above, so it can never solve — the button must
+    // stay disabled rather than let a submission through unverified.
+    await expect(page.getByRole("button", { name: /send message/i })).toBeDisabled();
+
+    // The honeypot must never surface as an accessible control — real
+    // keyboard/AT users should have no way to reach or perceive it.
+    await expect(page.getByRole("textbox", { name: /website/i })).toHaveCount(0);
+
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
     expect(results.violations).toEqual([]);
   });

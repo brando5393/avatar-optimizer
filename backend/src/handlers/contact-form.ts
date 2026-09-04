@@ -1,7 +1,7 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
-import { isValidContactPayload } from "../lib/contact-payload";
+import { isHoneypotFilled, isValidContactPayload } from "../lib/contact-payload";
 import { verifyTurnstileToken } from "../lib/turnstile";
 
 const ses = new SESv2Client({});
@@ -56,6 +56,12 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
   if (!isValidContactPayload(payload)) {
     return jsonResponse(400, { error: "Invalid payload" });
+  }
+
+  // Bot filled the honeypot: pretend success (don't tip it off) and drop
+  // the message without touching Turnstile or SES.
+  if (isHoneypotFilled(payload)) {
+    return jsonResponse(200, { ok: true });
   }
 
   const secret = await getTurnstileSecret();

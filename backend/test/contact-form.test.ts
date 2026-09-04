@@ -85,6 +85,15 @@ describe("contact-form handler", () => {
     expect(command.input.ReplyToAddresses).toEqual(["sender@example.com"]);
   });
 
+  it("silently accepts and drops a submission with the honeypot filled in", async () => {
+    const result = await handler(
+      makeEvent({ message: "Buy pills now", turnstileToken: "whatever", website: "https://spam.example" }),
+    );
+    expect(result.statusCode).toBe(200);
+    expect(verifyTurnstileToken).not.toHaveBeenCalled();
+    expect(sesSendMock).not.toHaveBeenCalled();
+  });
+
   it("includes CORS headers reflecting ALLOWED_ORIGIN on every response", async () => {
     const result = await handler(makeEvent({ message: "" }));
     expect(result.headers?.["Access-Control-Allow-Origin"]).toBe("https://picperfecto.com");

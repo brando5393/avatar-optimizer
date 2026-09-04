@@ -6,6 +6,10 @@
 
   let message = $state("");
   let email = $state("");
+  // CSS honeypot: real users never see or reach this field (off-screen,
+  // aria-hidden, excluded from tab order). Bots that blindly fill every
+  // field they find populate it — see backend isHoneypotFilled.
+  let website = $state("");
   let status = $state<Status>("idle");
   let turnstileToken = $state<string | null>(null);
   let widgetContainer: HTMLDivElement;
@@ -59,7 +63,7 @@
       const response = await fetch(CONTACT_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, email: email || undefined, turnstileToken }),
+        body: JSON.stringify({ message, email: email || undefined, website, turnstileToken }),
       });
       if (!response.ok) throw new Error(`Request failed: ${response.status}`);
       status = "success";
@@ -102,12 +106,29 @@
     />
   </div>
 
+  <!--
+    Honeypot: absolutely positioned off-screen (not display:none/hidden,
+    which unsophisticated bots skip), aria-hidden and tabindex=-1 so it
+    never reaches screen reader users or keyboard tab order.
+  -->
+  <div class="absolute left-[-9999px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+    <label for="contact-website">Website</label>
+    <input
+      id="contact-website"
+      name="website"
+      type="text"
+      tabindex="-1"
+      autocomplete="off"
+      bind:value={website}
+    />
+  </div>
+
   <div class="mt-4" bind:this={widgetContainer}></div>
 
   <button
     type="submit"
-    disabled={status === "submitting"}
-    class="mt-6 rounded-full bg-flash px-8 py-3 text-lg font-bold text-white shadow-lg shadow-flash/20 transition hover:bg-flash-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-flash-dark disabled:opacity-60"
+    disabled={status === "submitting" || !turnstileToken}
+    class="mt-6 rounded-full bg-flash px-8 py-3 text-lg font-bold text-white shadow-lg shadow-flash/20 transition hover:bg-flash-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-flash-dark disabled:cursor-not-allowed disabled:opacity-60"
   >
     {status === "submitting" ? "Sending…" : "Send message"}
   </button>
