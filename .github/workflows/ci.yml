@@ -21,6 +21,13 @@ jobs:
           node-version: 22
           cache: npm
 
+      # ProcessingStack's process-upload Lambda bundles `sharp` (a native
+      # module) for arm64 via Docker; GitHub's runners are amd64, so without
+      # QEMU that Docker build fails with "exec format error".
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
       - run: npm ci
 
       - name: Lint (typecheck) every workspace
