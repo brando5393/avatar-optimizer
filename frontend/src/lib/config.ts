@@ -2,6 +2,5 @@
 // server-side in AWS Secrets Manager (see docs/architecture.md).
 export const TURNSTILE_SITE_KEY = "0x4AAAAAAEmkybB8q61nQbu0";
 
-// TODO: replace with the real value from the PicPerfectoContactStack
-// "ContactFormUrl" CloudFormation output once that stack is deployed.
-export const CONTACT_API_URL = "https://contact.picperfecto.com/";
+// PicPerfectoContactStack "ContactFormUrl" CloudFormation output.
+export const CONTACT_API_URL = "https://ag33ssacezbctuhshf4iwjl3pq0rfbor.lambda-url.us-east-1.on.aws/";
