@@ -9,10 +9,17 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.716.0",
+    "@aws-sdk/client-rekognition": "^3.716.0",
+    "@aws-sdk/client-s3": "^3.716.0",
     "@aws-sdk/client-secrets-manager": "^3.716.0",
-    "@aws-sdk/client-sesv2": "^3.716.0"
+    "@aws-sdk/client-sesv2": "^3.716.0",
+    "@aws-sdk/lib-dynamodb": "^3.716.0",
+    "@aws-sdk/s3-request-presigner": "^3.716.0",
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
+    "@img/sharp-wasm32": "^0.35.4",
     "@types/aws-lambda": "^8.10.147",
     "@types/node": "^22.10.0",
     "typescript": "^5.7.3",
