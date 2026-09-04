@@ -18,6 +18,7 @@ beforeAll(() => {
     uploadsBucket: core.uploadsBucket,
     outputsBucket: core.outputsBucket,
     sessionsTable: core.sessionsTable,
+    rateLimitTable: core.rateLimitTable,
     processingQueue: core.processingQueue,
   });
   cdk.Tags.of(app).add("Project", "picperfecto");
@@ -50,6 +51,27 @@ describe("ProcessingStack", () => {
       PolicyDocument: Match.objectLike({
         Statement: Match.arrayWith([
           Match.objectLike({ Effect: "Allow", Action: "rekognition:DetectModerationLabels" }),
+        ]),
+      }),
+    });
+  });
+
+  it("attaches the Turnstile secret-read policy to generate-upload-url", () => {
+    template.hasResourceProperties("AWS::IAM::Role", {
+      ManagedPolicyArns: Match.arrayWith([
+        "arn:aws:iam::899111410433:policy/picperfecto-turnstile-secret-read",
+      ]),
+    });
+  });
+
+  it("grants rate-limit table write access for the public-facing endpoints", () => {
+    template.hasResourceProperties("AWS::IAM::Policy", {
+      PolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Effect: "Allow",
+            Action: Match.arrayWith(["dynamodb:UpdateItem"]),
+          }),
         ]),
       }),
     });

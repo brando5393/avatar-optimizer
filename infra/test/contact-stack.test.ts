@@ -2,12 +2,13 @@ import * as cdk from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { describe, it } from "vitest";
 import { ContactStack } from "../lib/contact-stack";
+import { CoreStack } from "../lib/core-stack";
 
 function synth() {
   const app = new cdk.App();
-  const stack = new ContactStack(app, "TestContactStack", {
-    env: { account: "123456789012", region: "us-east-1" },
-  });
+  const env = { account: "123456789012", region: "us-east-1" };
+  const core = new CoreStack(app, "TestCoreStack", { env });
+  const stack = new ContactStack(app, "TestContactStack", { env, rateLimitTable: core.rateLimitTable });
   cdk.Tags.of(app).add("Project", "picperfecto");
   return Template.fromStack(stack);
 }
@@ -67,6 +68,21 @@ describe("ContactStack", () => {
       ManagedPolicyArns: Match.arrayWith([
         "arn:aws:iam::899111410433:policy/picperfecto-turnstile-secret-read",
       ]),
+    });
+  });
+
+  it("grants the contact-form function write access to the rate-limit table", () => {
+    const template = synth();
+
+    template.hasResourceProperties("AWS::IAM::Policy", {
+      PolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Effect: "Allow",
+            Action: Match.arrayWith(["dynamodb:UpdateItem"]),
+          }),
+        ]),
+      }),
     });
   });
 

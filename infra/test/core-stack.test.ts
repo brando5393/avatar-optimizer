@@ -71,6 +71,17 @@ describe("CoreStack", () => {
     });
   });
 
+  it("creates a pay-per-request rate-limit table with TTL on expiresAt", () => {
+    const template = synth();
+
+    template.resourceCountIs("AWS::DynamoDB::Table", 2);
+    template.hasResourceProperties("AWS::DynamoDB::Table", {
+      BillingMode: "PAY_PER_REQUEST",
+      TimeToLiveSpecification: { AttributeName: "expiresAt", Enabled: true },
+      KeySchema: [{ AttributeName: "rateLimitKey", KeyType: "HASH" }],
+    });
+  });
+
   it("tags every taggable resource with Project=picperfecto", () => {
     const template = synth();
 

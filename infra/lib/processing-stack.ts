@@ -8,14 +8,15 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import { Construct } from "constructs";
+import { DOMAIN_NAME, TURNSTILE_SECRET_ID, TURNSTILE_SECRET_READ_POLICY_ARN } from "./constants";
 
-const DOMAIN_NAME = "picperfecto.com";
 const BACKEND_HANDLERS_DIR = path.join(__dirname, "..", "..", "backend", "src", "handlers");
 
 export interface ProcessingStackProps extends StackProps {
   uploadsBucket: s3.Bucket;
   outputsBucket: s3.Bucket;
   sessionsTable: dynamodb.Table;
+  rateLimitTable: dynamodb.Table;
   /** Created in CoreStack — see the comment there for why. */
   processingQueue: sqs.Queue;
 }
@@ -34,12 +35,13 @@ export class ProcessingStack extends Stack {
   constructor(scope: Construct, id: string, props: ProcessingStackProps) {
     super(scope, id, props);
 
-    const { uploadsBucket, outputsBucket, sessionsTable, processingQueue } = props;
+    const { uploadsBucket, outputsBucket, sessionsTable, rateLimitTable, processingQueue } = props;
 
     const commonEnv = {
       UPLOADS_BUCKET: uploadsBucket.bucketName,
       OUTPUTS_BUCKET: outputsBucket.bucketName,
       SESSIONS_TABLE: sessionsTable.tableName,
+      RATE_LIMIT_TABLE: rateLimitTable.tableName,
       ALLOWED_ORIGIN: `https://${DOMAIN_NAME}`,
     };
 
@@ -58,10 +60,18 @@ export class ProcessingStack extends Stack {
       architecture: lambda.Architecture.ARM_64,
       timeout: Duration.seconds(15),
       memorySize: 256,
-      environment: commonEnv,
+      environment: { ...commonEnv, TURNSTILE_SECRET_ID },
     });
     uploadsBucket.grantPut(generateUploadUrlFn);
     sessionsTable.grantWriteData(generateUploadUrlFn);
+    rateLimitTable.grantWriteData(generateUploadUrlFn);
+    generateUploadUrlFn.role?.addManagedPolicy(
+      iam.ManagedPolicy.fromManagedPolicyArn(
+        this,
+        "GenerateUploadUrlTurnstileSecretReadPolicy",
+        TURNSTILE_SECRET_READ_POLICY_ARN,
+      ),
+    );
     const generateUploadUrlFnUrl = generateUploadUrlFn.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
       cors: corsForFunctionUrl([lambda.HttpMethod.POST]),

@@ -22,6 +22,7 @@ export class CoreStack extends Stack {
   public readonly uploadsBucket: s3.Bucket;
   public readonly outputsBucket: s3.Bucket;
   public readonly sessionsTable: dynamodb.Table;
+  public readonly rateLimitTable: dynamodb.Table;
   public readonly processingQueue: sqs.Queue;
 
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -61,6 +62,19 @@ export class CoreStack extends Stack {
 
     this.sessionsTable = new dynamodb.Table(this, "SessionsTable", {
       partitionKey: { name: "sessionToken", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      timeToLiveAttribute: "expiresAt",
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
+    // Hardcoded per-IP rate limiting for the public unauthenticated
+    // endpoints (generate-upload-url, contact-form) — see the cost-DoS note
+    // in docs/architecture.md. Lambda Function URLs have no built-in
+    // throttling the way API Gateway does, so this lives in the handlers
+    // themselves via lib/rate-limit.ts's fixed-window counter.
+    this.rateLimitTable = new dynamodb.Table(this, "RateLimitTable", {
+      partitionKey: { name: "rateLimitKey", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
       timeToLiveAttribute: "expiresAt",

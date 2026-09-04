@@ -1,23 +1,13 @@
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 import { isHoneypotFilled, isValidContactPayload } from "../lib/contact-payload";
-import { verifyTurnstileToken } from "../lib/turnstile";
+import { checkRateLimit } from "../lib/rate-limit";
+import { getTurnstileSecret, verifyTurnstileToken } from "../lib/turnstile";
 
 const ses = new SESv2Client({});
-const secretsManager = new SecretsManagerClient({});
 
-let cachedTurnstileSecret: string | undefined;
-
-async function getTurnstileSecret(): Promise<string> {
-  if (cachedTurnstileSecret) return cachedTurnstileSecret;
-  const secretId = requireEnv("TURNSTILE_SECRET_ID");
-  const result = await secretsManager.send(new GetSecretValueCommand({ SecretId: secretId }));
-  if (!result.SecretString) throw new Error("Turnstile secret has no string value");
-  const parsed = JSON.parse(result.SecretString) as { api_key: string };
-  cachedTurnstileSecret = parsed.api_key;
-  return cachedTurnstileSecret;
-}
+const RATE_LIMIT = 5;
+const RATE_LIMIT_WINDOW_SECONDS = 10 * 60;
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -47,6 +37,18 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     return jsonResponse(405, { error: "Method not allowed" });
   }
 
+  const sourceIp = event.requestContext.http.sourceIp;
+  const rateLimit = await checkRateLimit({
+    tableName: requireEnv("RATE_LIMIT_TABLE"),
+    identifier: sourceIp,
+    scope: "contact-form",
+    limit: RATE_LIMIT,
+    windowSeconds: RATE_LIMIT_WINDOW_SECONDS,
+  });
+  if (!rateLimit.allowed) {
+    return jsonResponse(429, { error: "Too many requests. Please try again later." });
+  }
+
   let payload: unknown;
   try {
     payload = parseBody(event);
@@ -64,8 +66,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     return jsonResponse(200, { ok: true });
   }
 
-  const secret = await getTurnstileSecret();
-  const verified = await verifyTurnstileToken(secret, payload.turnstileToken, event.requestContext.http.sourceIp);
+  const secret = await getTurnstileSecret(requireEnv("TURNSTILE_SECRET_ID"));
+  const verified = await verifyTurnstileToken(secret, payload.turnstileToken, sourceIp);
   if (!verified) {
     return jsonResponse(403, { error: "Verification failed" });
   }

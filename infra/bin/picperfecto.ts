@@ -14,12 +14,13 @@ const env = {
 };
 
 const coreStack = new CoreStack(app, "PicPerfectoCoreStack", { env });
-new ContactStack(app, "PicPerfectoContactStack", { env });
+new ContactStack(app, "PicPerfectoContactStack", { env, rateLimitTable: coreStack.rateLimitTable });
 new ProcessingStack(app, "PicPerfectoProcessingStack", {
   env,
   uploadsBucket: coreStack.uploadsBucket,
   outputsBucket: coreStack.outputsBucket,
   sessionsTable: coreStack.sessionsTable,
+  rateLimitTable: coreStack.rateLimitTable,
   processingQueue: coreStack.processingQueue,
 });
 

@@ -3,8 +3,10 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
+import { checkRateLimit } from "../lib/rate-limit";
 import { newExpiresAt, type SessionRecord } from "../lib/session-record";
 import { generateSessionToken } from "../lib/session-token";
+import { getTurnstileSecret, verifyTurnstileToken } from "../lib/turnstile";
 
 const s3 = new S3Client({});
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
@@ -13,6 +15,14 @@ const MIN_FILES = 1;
 const MAX_FILES = 10;
 const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15MB per photo
 const POST_EXPIRY_SECONDS = 15 * 60;
+
+// Hardcoded: this endpoint kicks off a real cost chain per call (S3 writes,
+// a DynamoDB item, and eventually Rekognition + sharp processing once
+// something's uploaded to the presigned URLs it hands out) — see
+// docs/architecture.md's cost-DoS note. Legitimate use is "upload a batch
+// every so often," not rapid repeated calls.
+const RATE_LIMIT = 5;
+const RATE_LIMIT_WINDOW_SECONDS = 10 * 60;
 
 function jsonResponse(statusCode: number, body: unknown): APIGatewayProxyStructuredResultV2 {
   return {
@@ -33,6 +43,7 @@ function requireEnv(name: string): string {
 
 interface RequestBody {
   fileCount: number;
+  turnstileToken: string;
 }
 
 function isValidRequest(value: unknown): value is RequestBody {
@@ -42,7 +53,9 @@ function isValidRequest(value: unknown): value is RequestBody {
     typeof candidate.fileCount === "number" &&
     Number.isInteger(candidate.fileCount) &&
     candidate.fileCount >= MIN_FILES &&
-    candidate.fileCount <= MAX_FILES
+    candidate.fileCount <= MAX_FILES &&
+    typeof candidate.turnstileToken === "string" &&
+    candidate.turnstileToken.length > 0
   );
 }
 
@@ -57,6 +70,18 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     return jsonResponse(405, { error: "Method not allowed" });
   }
 
+  const sourceIp = event.requestContext.http.sourceIp;
+  const rateLimit = await checkRateLimit({
+    tableName: requireEnv("RATE_LIMIT_TABLE"),
+    identifier: sourceIp,
+    scope: "generate-upload-url",
+    limit: RATE_LIMIT,
+    windowSeconds: RATE_LIMIT_WINDOW_SECONDS,
+  });
+  if (!rateLimit.allowed) {
+    return jsonResponse(429, { error: "Too many requests. Please try again later." });
+  }
+
   let payload: unknown;
   try {
     payload = parseBody(event);
@@ -66,6 +91,12 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
   if (!isValidRequest(payload)) {
     return jsonResponse(400, { error: `fileCount must be an integer between ${MIN_FILES} and ${MAX_FILES}` });
+  }
+
+  const secret = await getTurnstileSecret(requireEnv("TURNSTILE_SECRET_ID"));
+  const verified = await verifyTurnstileToken(secret, payload.turnstileToken, sourceIp);
+  if (!verified) {
+    return jsonResponse(403, { error: "Verification failed" });
   }
 
   const bucket = requireEnv("UPLOADS_BUCKET");
