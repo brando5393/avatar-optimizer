@@ -31,6 +31,13 @@ export class CoreStack extends Stack {
       lifecycleRules: [{ expiration: RETENTION }],
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
+      cors: [
+        {
+          allowedMethods: [s3.HttpMethods.POST],
+          allowedOrigins: ["https://picperfecto.com", "http://localhost:5173"],
+          allowedHeaders: ["*"],
+        },
+      ],
     });
 
     this.outputsBucket = new s3.Bucket(this, "OutputsBucket", {
@@ -43,7 +50,7 @@ export class CoreStack extends Stack {
       cors: [
         {
           allowedMethods: [s3.HttpMethods.GET],
-          allowedOrigins: ["https://picperfecto.com"],
+          allowedOrigins: ["https://picperfecto.com", "http://localhost:5173"],
           allowedHeaders: ["*"],
         },
       ],
