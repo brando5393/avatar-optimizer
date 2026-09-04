@@ -1,0 +1,26 @@
+node_modules/
+dist/
+build/
+.svelte-kit/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+
+# CDK
+infra/cdk.out/
+infra/cdk.context.json
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/playwright/.cache/

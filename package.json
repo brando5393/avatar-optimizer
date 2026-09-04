@@ -1,0 +1,22 @@
+{
+  "name": "picperfecto",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Pic Perfecto — fast, ephemeral photo optimizer for avatars, gamerpics, and profile images across social platforms.",
+  "workspaces": [
+    "infra",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "overrides": {
+    "vite": "^6.0.7"
+  }
+}
