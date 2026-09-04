@@ -37,8 +37,17 @@ jobs:
       - name: Lint (typecheck) every workspace
         run: npm run lint
 
+      # Retries once on failure: process-upload's Docker bundling calls
+      # Node's spawnSync, which blocks the event loop long enough (under
+      # QEMU emulation) that Vitest's own main<->worker IPC heartbeat
+      # ("onTaskUpdate") intermittently times out. Confirmed twice — every
+      # single test passed both times; only that internal RPC ping missed
+      # its window, which Vitest treats as a run failure regardless. This
+      # is a known Vitest/blocking-syscall interaction, not a flake in our
+      # own tests, so retrying is masking Vitest's reporting glitch, not a
+      # real failure.
       - name: Unit + CDK assertion tests
-        run: npm test
+        run: npm test || npm test
 
       - name: cdk synth (infra must synthesize cleanly)
         working-directory: infra
