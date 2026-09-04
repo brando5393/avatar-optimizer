@@ -6,7 +6,6 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
-import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import { Construct } from "constructs";
 
@@ -17,12 +16,14 @@ export interface ProcessingStackProps extends StackProps {
   uploadsBucket: s3.Bucket;
   outputsBucket: s3.Bucket;
   sessionsTable: dynamodb.Table;
+  /** Created in CoreStack — see the comment there for why. */
+  processingQueue: sqs.Queue;
 }
 
 /**
  * The actual product: upload -> moderate -> resize/filter -> download.
- * Three Lambdas (generate-upload-url, process-upload, get-session) plus the
- * SQS queue wiring the upload event to the worker. Only process-upload
+ * Three Lambdas (generate-upload-url, process-upload, get-session) consuming
+ * the SQS queue CoreStack wires to the uploads bucket. Only process-upload
  * needs Docker to bundle correctly, because it pulls in `sharp` (a native
  * module) — the other two are plain esbuild bundles like ContactStack's.
  */
@@ -33,15 +34,7 @@ export class ProcessingStack extends Stack {
   constructor(scope: Construct, id: string, props: ProcessingStackProps) {
     super(scope, id, props);
 
-    const { uploadsBucket, outputsBucket, sessionsTable } = props;
-
-    const dlq = new sqs.Queue(this, "ProcessingDLQ", { retentionPeriod: Duration.days(3) });
-    const queue = new sqs.Queue(this, "ProcessingQueue", {
-      visibilityTimeout: Duration.seconds(120),
-      deadLetterQueue: { queue: dlq, maxReceiveCount: 3 },
-    });
-
-    uploadsBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(queue));
+    const { uploadsBucket, outputsBucket, sessionsTable, processingQueue } = props;
 
     const commonEnv = {
       UPLOADS_BUCKET: uploadsBucket.bucketName,
@@ -106,7 +99,7 @@ export class ProcessingStack extends Stack {
       }),
     );
     processUploadFn.addEventSource(
-      new lambdaEventSources.SqsEventSource(queue, {
+      new lambdaEventSources.SqsEventSource(processingQueue, {
         batchSize: 5,
         reportBatchItemFailures: true,
       }),

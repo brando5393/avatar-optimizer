@@ -20,6 +20,7 @@ new ProcessingStack(app, "PicPerfectoProcessingStack", {
   uploadsBucket: coreStack.uploadsBucket,
   outputsBucket: coreStack.outputsBucket,
   sessionsTable: coreStack.sessionsTable,
+  processingQueue: coreStack.processingQueue,
 });
 
 // Every resource this app owns must carry this tag: it is how the resource

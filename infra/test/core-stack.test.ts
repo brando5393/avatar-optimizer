@@ -85,4 +85,25 @@ describe("CoreStack", () => {
     template.allResources("AWS::DynamoDB::Table", { DeletionPolicy: "Delete" });
     template.allResources("AWS::S3::Bucket", { DeletionPolicy: "Delete" });
   });
+
+  it("creates a processing queue with a dead-letter queue after 3 failed receives", () => {
+    const template = synth();
+
+    template.hasResourceProperties("AWS::SQS::Queue", {
+      RedrivePolicy: Match.objectLike({ maxReceiveCount: 3 }),
+    });
+    template.resourceCountIs("AWS::SQS::Queue", 2);
+  });
+
+  it("wires the uploads bucket's ObjectCreated events to the processing queue", () => {
+    const template = synth();
+
+    template.hasResourceProperties("Custom::S3BucketNotifications", {
+      NotificationConfiguration: Match.objectLike({
+        QueueConfigurations: Match.arrayWith([
+          Match.objectLike({ Events: Match.arrayWith(["s3:ObjectCreated:*"]) }),
+        ]),
+      }),
+    });
+  });
 });
