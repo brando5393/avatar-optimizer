@@ -45,7 +45,7 @@
   });
 
   onDestroy(() => {
-    if (window.turnstile && widgetId) window.turnstile.reset(widgetId);
+    if (typeof window !== "undefined" && window.turnstile && widgetId) window.turnstile.reset(widgetId);
   });
 
   async function handleSubmit(event: SubmitEvent) {
