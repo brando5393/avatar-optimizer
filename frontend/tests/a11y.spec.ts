@@ -27,6 +27,16 @@ test("home page links to Upload Photos and Recover My Package", async ({ page })
   await expect(page.getByRole("button", { name: "Recover My Package" })).toBeVisible();
 });
 
+test("an unknown route renders the themed error page with no a11y violations", async ({ page }) => {
+  const response = await page.goto("/this-page-does-not-exist");
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("didn't develop");
+  await expect(page.getByRole("link", { name: "Back to the booth" })).toHaveAttribute("href", "/");
+
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  expect(results.violations).toEqual([]);
+});
+
 test("footer links reach the privacy and content policy pages", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "Privacy Policy" }).click();
