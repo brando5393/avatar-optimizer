@@ -13,5 +13,13 @@ export default defineConfig({
     // Vitest config values, not one shared default.
     testTimeout: 180_000,
     hookTimeout: 180_000,
+    // The Docker build for process-upload's sharp bundling blocks Node's
+    // event loop long enough (2+ minutes under CI's QEMU emulation) that
+    // Vitest's main<->worker IPC heartbeat ("onTaskUpdate") times out and
+    // gets reported as an unhandled error — even though every test in the
+    // run actually passed. Disabling cross-file worker parallelism (only 3
+    // files here, so the cost is small) removes that coordination
+    // overhead entirely.
+    fileParallelism: false,
   },
 });
