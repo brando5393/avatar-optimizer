@@ -2,12 +2,16 @@
   const year = new Date().getFullYear();
 </script>
 
-<footer class="mt-auto px-6 py-8 text-center text-sm text-ink/80">
+<footer class="mt-auto px-6 py-8 text-center text-sm text-ink/80 dark:text-cream/80">
   <p>Photos are automatically deleted after 72 hours. No account needed.</p>
-  <nav class="mt-3 flex items-center justify-center gap-4" aria-label="Legal">
-    <a href="/privacy" class="underline decoration-booth/40 underline-offset-2 hover:text-booth">Privacy Policy</a>
+  <nav class="mt-3 flex flex-wrap items-center justify-center gap-4" aria-label="Legal">
+    <a href="/privacy" class="underline decoration-booth/40 underline-offset-2 hover:text-booth dark:decoration-booth-light/40 dark:hover:text-booth-light">Privacy Policy</a>
     <span aria-hidden="true">·</span>
-    <a href="/content-policy" class="underline decoration-booth/40 underline-offset-2 hover:text-booth">Content Policy</a>
+    <a href="/content-policy" class="underline decoration-booth/40 underline-offset-2 hover:text-booth dark:decoration-booth-light/40 dark:hover:text-booth-light">Content Policy</a>
+    <span aria-hidden="true">·</span>
+    <a href="/terms" class="underline decoration-booth/40 underline-offset-2 hover:text-booth dark:decoration-booth-light/40 dark:hover:text-booth-light">Terms of Service</a>
+    <span aria-hidden="true">·</span>
+    <a href="/contact" class="underline decoration-booth/40 underline-offset-2 hover:text-booth dark:decoration-booth-light/40 dark:hover:text-booth-light">Contact</a>
   </nav>
   <p class="mt-3">&copy; {year} Pic Perfecto</p>
 </footer>

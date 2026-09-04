@@ -9,9 +9,11 @@ describe("Footer", () => {
     expect(screen.getByText(/no account needed/i)).toBeInTheDocument();
   });
 
-  it("links to both the privacy policy and the content policy", () => {
+  it("links to the privacy policy, content policy, terms, and contact page", () => {
     render(Footer);
     expect(screen.getByRole("link", { name: "Privacy Policy" })).toHaveAttribute("href", "/privacy");
     expect(screen.getByRole("link", { name: "Content Policy" })).toHaveAttribute("href", "/content-policy");
+    expect(screen.getByRole("link", { name: "Terms of Service" })).toHaveAttribute("href", "/terms");
+    expect(screen.getByRole("link", { name: "Contact" })).toHaveAttribute("href", "/contact");
   });
 });

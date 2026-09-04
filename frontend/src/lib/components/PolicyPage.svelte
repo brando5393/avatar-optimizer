@@ -15,9 +15,9 @@
   <Header />
   <main class="flex-1 px-6 py-12">
     <article class="mx-auto max-w-2xl">
-      <h1 class="font-display text-4xl tracking-wide text-ink">{title}</h1>
-      <p class="mt-2 text-sm text-ink/70">Last updated {updated}</p>
-      <div class="prose prose-neutral mt-8 max-w-none prose-headings:font-display prose-headings:font-normal prose-headings:tracking-wide prose-a:text-booth">
+      <h1 class="font-display text-4xl tracking-wide text-ink dark:text-cream">{title}</h1>
+      <p class="mt-2 text-sm text-ink/70 dark:text-cream/70">Last updated {updated}</p>
+      <div class="prose prose-neutral dark:prose-invert mt-8 max-w-none prose-headings:font-display prose-headings:font-normal prose-headings:tracking-wide prose-a:text-booth dark:prose-a:text-booth-light">
         {@render children()}
       </div>
     </article>

@@ -50,7 +50,7 @@
   <p>
     Because uploads are anonymous and automatically deleted after 72 hours, we're not able
     to investigate individual past uploads on request. If you believe the service is being
-    misused, contact the address listed on picperfecto.com.
+    misused, reach out through our <a href="/contact">contact page</a>.
   </p>
 
   <p>See also our <a href="/privacy">Privacy Policy</a> for how long we keep data and who we share it with.</p>

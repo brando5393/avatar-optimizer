@@ -1,4 +1,6 @@
 <script lang="ts">
+  import TrustBadges from "./TrustBadges.svelte";
+
   interface Props {
     onUploadClick?: () => void;
     onRecoverClick?: () => void;
@@ -15,9 +17,9 @@
   </div>
 
   <div class="relative mx-auto max-w-3xl px-6 py-16 text-center sm:py-24">
-    <p class="font-display text-sm uppercase tracking-[0.3em] text-booth">Step right up</p>
-    <h1 class="mt-3 font-display text-6xl tracking-wide text-ink sm:text-7xl">Pic Perfecto</h1>
-    <p class="mx-auto mt-5 max-w-xl text-lg text-ink/80">
+    <p class="font-display text-sm uppercase tracking-[0.3em] text-booth dark:text-booth-light">Step right up</p>
+    <h1 class="mt-3 font-display text-6xl tracking-wide text-ink dark:text-cream sm:text-7xl">Pic Perfecto</h1>
+    <p class="mx-auto mt-5 max-w-xl text-lg text-ink/80 dark:text-cream/80">
       Upload your photos, run them through our booth of filters and crops, and
       walk away with perfectly sized shots for every platform — no account
       required.
@@ -33,10 +35,12 @@
       <button
         type="button"
         onclick={onRecoverClick}
-        class="rounded-full border-2 border-booth px-8 py-3 text-lg font-bold text-booth transition hover:bg-booth hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-booth"
+        class="rounded-full border-2 border-booth px-8 py-3 text-lg font-bold text-booth transition hover:bg-booth hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-booth dark:border-booth-light dark:text-booth-light dark:hover:bg-booth-light dark:hover:text-night dark:focus-visible:outline-booth-light"
       >
         Recover My Package
       </button>
     </div>
+
+    <TrustBadges />
   </div>
 </section>

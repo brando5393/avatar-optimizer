@@ -11,9 +11,9 @@
 <div class="flex min-h-screen flex-col">
   <Header />
   <main class="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
-    <p class="font-display text-sm uppercase tracking-[0.3em] text-booth">{$page.status}</p>
-    <h1 class="mt-3 font-display text-5xl tracking-wide text-ink">This frame didn't develop</h1>
-    <p class="mx-auto mt-4 max-w-md text-lg text-ink/80">
+    <p class="font-display text-sm uppercase tracking-[0.3em] text-booth dark:text-booth-light">{$page.status}</p>
+    <h1 class="mt-3 font-display text-5xl tracking-wide text-ink dark:text-cream">This frame didn't develop</h1>
+    <p class="mx-auto mt-4 max-w-md text-lg text-ink/80 dark:text-cream/80">
       {$page.error?.message ?? "That page doesn't exist."}
     </p>
     <a

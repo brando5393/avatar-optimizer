@@ -64,5 +64,5 @@
   <p>If this policy changes materially, we'll update the date at the top of this page.</p>
 
   <h2>Contact</h2>
-  <p>Questions about this policy can be sent to the contact address listed on picperfecto.com.</p>
+  <p>Questions about this policy can be sent through our <a href="/contact">contact page</a>.</p>
 </PolicyPage>

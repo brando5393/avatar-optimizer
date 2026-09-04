@@ -2,6 +2,7 @@
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { Tags } from "aws-cdk-lib";
+import { ContactStack } from "../lib/contact-stack";
 import { CoreStack } from "../lib/core-stack";
 
 const app = new cdk.App();
@@ -12,6 +13,7 @@ const env = {
 };
 
 new CoreStack(app, "PicPerfectoCoreStack", { env });
+new ContactStack(app, "PicPerfectoContactStack", { env });
 
 // Every resource this app owns must carry this tag: it is how the resource
 // shows up in the picperfecto-optimizer Resource Group, how spend is

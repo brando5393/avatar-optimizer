@@ -9,6 +9,6 @@
 
 @layer base {
   body {
-    @apply bg-cream text-ink;
+    @apply bg-cream text-ink dark:bg-night dark:text-cream;
   }
 }
