@@ -135,7 +135,7 @@
 
   <p aria-live="polite" class="mt-4 text-sm">
     {#if status === "verifying"}
-      <span class="text-ink/70 dark:text-cream/70">Please complete the verification above first.</span>
+      <span class="text-subtle">Please complete the verification above first.</span>
     {:else if status === "success"}
       <span class="text-booth dark:text-booth-light">Sent — thanks for reaching out.</span>
     {:else if status === "error"}

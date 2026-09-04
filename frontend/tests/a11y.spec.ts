@@ -78,6 +78,41 @@ test("the themed error page has no a11y violations in dark mode either", async (
   expect(results.violations).toEqual([]);
 });
 
+test("accessibility drawer opens, traps focus, has no a11y violations, and applies preferences", async ({ page }) => {
+  await page.goto("/");
+
+  const trigger = page.getByRole("button", { name: "Accessibility settings" });
+  await trigger.click();
+
+  const dialog = page.getByRole("dialog", { name: "Accessibility settings" });
+  await expect(dialog).toBeVisible();
+  // Initial focus should land inside the dialog, not stay on the trigger.
+  await expect(dialog.locator(":focus")).toHaveCount(1);
+
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  expect(results.violations).toEqual([]);
+
+  // High contrast: text-muted content should reach full opacity.
+  await page.getByRole("checkbox", { name: "High-contrast text" }).click();
+  await expect(page.locator("html")).toHaveClass(/high-contrast/);
+
+  // Larger text should scale the root font size up.
+  const baseFontSize = await page.evaluate(() => getComputedStyle(document.documentElement).fontSize);
+  await page.getByRole("radio", { name: "Larger" }).click();
+  await expect(page.locator("html")).toHaveClass(/text-size-xl/);
+  const largerFontSize = await page.evaluate(() => getComputedStyle(document.documentElement).fontSize);
+  expect(parseFloat(largerFontSize)).toBeGreaterThan(parseFloat(baseFontSize));
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+
+  // Preferences persist across reloads.
+  await page.reload();
+  await expect(page.locator("html")).toHaveClass(/high-contrast/);
+  await expect(page.locator("html")).toHaveClass(/text-size-xl/);
+});
+
 test("footer links reach the privacy and content policy pages", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "Privacy Policy" }).click();

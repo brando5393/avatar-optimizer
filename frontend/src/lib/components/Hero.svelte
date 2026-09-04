@@ -19,7 +19,7 @@
   <div class="relative mx-auto max-w-3xl px-6 py-16 text-center sm:py-24">
     <p class="font-display text-sm uppercase tracking-[0.3em] text-booth dark:text-booth-light">Step right up</p>
     <h1 class="mt-3 font-display text-6xl tracking-wide text-ink dark:text-cream sm:text-7xl">Pic Perfecto</h1>
-    <p class="mx-auto mt-5 max-w-xl text-lg text-ink/80 dark:text-cream/80">
+    <p class="mx-auto mt-5 max-w-xl text-lg text-muted">
       Upload your photos, run them through our booth of filters and crops, and
       walk away with perfectly sized shots for every platform — no account
       required.

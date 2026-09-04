@@ -13,7 +13,7 @@
   <main class="flex-1 px-6 py-12">
     <div class="mx-auto max-w-xl text-center">
       <h1 class="font-display text-4xl tracking-wide text-ink dark:text-cream">Contact</h1>
-      <p class="mt-3 text-ink/80 dark:text-cream/80">
+      <p class="mt-3 text-muted">
         Questions, concerns, or something not working right — send a message and we'll get
         back to you.
       </p>

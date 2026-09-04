@@ -12,3 +12,67 @@
     @apply bg-cream text-ink dark:bg-night dark:text-cream;
   }
 }
+
+@layer components {
+  /* Shared muted-text tokens so the accessibility settings drawer's
+     high-contrast mode can override them from one place instead of
+     hunting down every text-ink/NN usage. */
+  .text-muted {
+    @apply text-ink/80 dark:text-cream/80;
+  }
+  .text-subtle {
+    @apply text-ink/70 dark:text-cream/70;
+  }
+}
+
+/*
+ * Accessibility settings drawer overrides (ThemeToggle/AccessibilityDrawer
+ * own the html classes below). Deliberately outside any @layer so they win
+ * over Tailwind's utility layer regardless of source order.
+ */
+
+/* Text size */
+html.text-size-lg {
+  font-size: 112.5%; /* ~18px base */
+}
+html.text-size-xl {
+  font-size: 125%; /* ~20px base */
+}
+
+/* Reduced motion (independent override of the OS-level setting) */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Force-underline links, for users who have trouble distinguishing
+   colored-but-not-underlined text as a link */
+html.underline-links a {
+  text-decoration-line: underline !important;
+  text-underline-offset: 2px;
+}
+
+/* High contrast: full-opacity muted text, stronger borders/focus rings */
+html.high-contrast .text-muted,
+html.high-contrast .text-subtle {
+  color: #201c18;
+}
+html.high-contrast.dark .text-muted,
+html.high-contrast.dark .text-subtle {
+  color: #fbf6ec;
+}
+html.high-contrast input,
+html.high-contrast textarea {
+  border-width: 2px;
+}
+html.high-contrast a {
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+}
+html.high-contrast *:focus-visible {
+  outline-width: 3px !important;
+}

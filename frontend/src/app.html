@@ -4,6 +4,26 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%sveltekit.assets%/favicon.svg" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      // Blocking (runs before first paint) to avoid a flash of the wrong
+      // theme/text-size/etc. AccessibilityDrawer.svelte owns writes to the
+      // same "a11y-prefs" key and applies the same classes on change.
+      (function () {
+        try {
+          var raw = localStorage.getItem("a11y-prefs");
+          var prefs = raw ? JSON.parse(raw) : {};
+          var theme = prefs.theme || "system";
+          var isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var root = document.documentElement;
+          root.classList.toggle("dark", isDark);
+          if (prefs.textSize === "lg") root.classList.add("text-size-lg");
+          if (prefs.textSize === "xl") root.classList.add("text-size-xl");
+          if (prefs.reduceMotion) root.classList.add("reduce-motion");
+          if (prefs.underlineLinks) root.classList.add("underline-links");
+          if (prefs.highContrast) root.classList.add("high-contrast");
+        } catch (e) {}
+      })();
+    </script>
     %sveltekit.head%
   </head>
   <body data-sveltekit-preload-data="hover">

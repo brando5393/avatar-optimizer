@@ -9,7 +9,7 @@
 <ul class="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm">
   {#each badges as badge (badge)}
     <li
-      class="rounded-full border border-ink/15 bg-white/60 px-4 py-1.5 text-ink/80 dark:border-cream/20 dark:bg-black/20 dark:text-cream/80"
+      class="rounded-full border border-ink/15 bg-white/60 px-4 py-1.5 text-muted dark:border-cream/20 dark:bg-black/20"
     >
       {badge}
     </li>

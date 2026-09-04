@@ -19,7 +19,7 @@
         <li class="text-center">
           <span class="font-display text-4xl text-flash">{step.n}</span>
           <h3 class="mt-2 text-lg font-semibold text-ink dark:text-cream">{step.title}</h3>
-          <p class="mt-1 text-sm text-ink/80 dark:text-cream/80">{step.body}</p>
+          <p class="mt-1 text-sm text-muted">{step.body}</p>
         </li>
       {/each}
     </ol>
