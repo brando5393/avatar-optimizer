@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
-  import { CONTACT_API_URL, TURNSTILE_SITE_KEY } from "$lib/config";
+  import { CONTACT_API_URL } from "$lib/config";
+  import TurnstileWidget from "./TurnstileWidget.svelte";
 
   type Status = "idle" | "verifying" | "submitting" | "success" | "error";
 
@@ -12,45 +12,16 @@
   let website = $state("");
   let status = $state<Status>("idle");
   let turnstileToken = $state<string | null>(null);
-  let widgetContainer: HTMLDivElement;
-  let widgetId: string | undefined;
+  let widget: TurnstileWidget | undefined = $state();
 
-  function renderWidget() {
-    if (!window.turnstile || !widgetContainer) return;
-    widgetId = window.turnstile.render(widgetContainer, {
-      sitekey: TURNSTILE_SITE_KEY,
-      callback: (token) => {
-        turnstileToken = token;
-        status = "idle";
-      },
-      "expired-callback": () => {
-        turnstileToken = null;
-      },
-    });
+  function handleVerify(token: string) {
+    turnstileToken = token;
+    status = "idle";
   }
 
-  onMount(() => {
-    if (window.turnstile) {
-      renderWidget();
-      return;
-    }
-    const existing = document.querySelector<HTMLScriptElement>('script[data-turnstile]');
-    if (!existing) {
-      const script = document.createElement("script");
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-      script.async = true;
-      script.defer = true;
-      script.dataset.turnstile = "true";
-      script.addEventListener("load", renderWidget);
-      document.head.appendChild(script);
-    } else {
-      existing.addEventListener("load", renderWidget);
-    }
-  });
-
-  onDestroy(() => {
-    if (typeof window !== "undefined" && window.turnstile && widgetId) window.turnstile.reset(widgetId);
-  });
+  function handleExpire() {
+    turnstileToken = null;
+  }
 
   async function handleSubmit(event: SubmitEvent) {
     event.preventDefault();
@@ -73,7 +44,7 @@
       status = "error";
     } finally {
       turnstileToken = null;
-      if (window.turnstile && widgetId) window.turnstile.reset(widgetId);
+      widget?.reset();
     }
   }
 </script>
@@ -123,7 +94,9 @@
     />
   </div>
 
-  <div class="mt-4" bind:this={widgetContainer}></div>
+  <div class="mt-4">
+    <TurnstileWidget bind:this={widget} onVerify={handleVerify} onExpire={handleExpire} />
+  </div>
 
   <button
     type="submit"

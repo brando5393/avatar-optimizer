@@ -9,6 +9,54 @@
 </script>
 
 <section class="relative overflow-hidden">
+  <!--
+    Decorative flowing film strip along the hero's left edge. Purely visual,
+    sits behind the glow and copy — hidden from assistive tech.
+  -->
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute -left-10 top-[-15%] h-[130%] w-20 -rotate-6 opacity-[0.07] dark:opacity-[0.1] sm:-left-4 sm:w-28"
+  >
+    <div class="h-full w-full rounded-[2rem] bg-ink dark:bg-cream"></div>
+    <div class="absolute inset-y-0 left-2.5 flex w-3 flex-col justify-between py-6 sm:left-3.5">
+      {#each Array.from({ length: 18 }) as _, i (i)}
+        <div class="h-3 w-3 rounded-full bg-cream dark:bg-night"></div>
+      {/each}
+    </div>
+    <div class="absolute inset-y-0 right-2.5 flex w-3 flex-col justify-between py-6 sm:right-3.5">
+      {#each Array.from({ length: 18 }) as _, i (i)}
+        <div class="h-3 w-3 rounded-full bg-cream dark:bg-night"></div>
+      {/each}
+    </div>
+  </div>
+
+  <!--
+    Decorative vintage flash-bulb camera along the hero's right edge. Purely
+    visual, mirrors the film strip on the left — hidden from assistive tech.
+  -->
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 220 180"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="pointer-events-none absolute -right-12 bottom-[-10%] h-[75%] w-56 rotate-6 text-ink opacity-[0.08] dark:text-cream dark:opacity-[0.12] sm:-right-6 sm:h-[85%] sm:w-72"
+  >
+    <rect x="20" y="70" width="140" height="80" rx="12" />
+    <rect x="35" y="55" width="110" height="18" rx="4" />
+    <rect x="75" y="38" width="35" height="20" rx="4" />
+    <circle cx="150" cy="64" r="4" fill="currentColor" stroke="none" />
+    <circle cx="90" cy="110" r="32" />
+    <circle cx="90" cy="110" r="21" />
+    <circle cx="90" cy="110" r="9" fill="currentColor" stroke="none" />
+    <path d="M155 88 L192 42" />
+    <path d="M170 22 L207 12 L207 56 L170 66 Z" />
+    <circle cx="187" cy="37" r="15" class="text-flash" stroke="currentColor" />
+    <path d="M187 17 L187 9M204 25 L212 20M204 50 L212 55M170 34 L162 30M170 42 L162 46" />
+  </svg>
+
   <div
     aria-hidden="true"
     class="pointer-events-none absolute inset-x-0 top-0 flex justify-center"

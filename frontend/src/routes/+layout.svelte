@@ -1,5 +1,6 @@
 <script lang="ts">
   import "../app.css";
+  import PageBackdrop from "$lib/components/PageBackdrop.svelte";
   let { children } = $props();
 </script>
 
@@ -25,4 +26,5 @@
   <meta name="twitter:image" content="https://picperfecto.com/og-image.png" />
 </svelte:head>
 
+<PageBackdrop />
 {@render children()}

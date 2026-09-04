@@ -8,7 +8,7 @@
   <title>{$page.status} — Pic Perfecto</title>
 </svelte:head>
 
-<div class="flex min-h-screen flex-col">
+<div class="relative z-10 flex min-h-screen flex-col">
   <Header />
   <main class="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
     <p class="font-display text-sm uppercase tracking-[0.3em] text-booth dark:text-booth-light">{$page.status}</p>

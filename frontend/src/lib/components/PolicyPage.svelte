@@ -11,7 +11,7 @@
   let { title, updated, children }: Props = $props();
 </script>
 
-<div class="flex min-h-screen flex-col">
+<div class="relative z-10 flex min-h-screen flex-col">
   <Header />
   <main class="flex-1 px-6 py-12">
     <article class="mx-auto max-w-2xl">

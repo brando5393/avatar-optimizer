@@ -6,6 +6,7 @@ const pages = [
   { path: "/privacy", title: "Privacy Policy — Pic Perfecto" },
   { path: "/content-policy", title: "Content Policy — Pic Perfecto" },
   { path: "/terms", title: "Terms of Service — Pic Perfecto" },
+  { path: "/recover", title: "Recover My Package — Pic Perfecto" },
 ];
 
 for (const { path, title } of pages) {
@@ -55,10 +56,43 @@ for (const colorScheme of ["light", "dark"] as const) {
   });
 }
 
-test("home page links to Upload Photos and Recover My Package", async ({ page }) => {
+for (const colorScheme of ["light", "dark"] as const) {
+  test(`/upload renders its dropzone and has no a11y violations (${colorScheme})`, async ({ page }) => {
+    // Same rationale as /contact: block the real Turnstile script so this
+    // test doesn't depend on live network access.
+    await page.route("**/challenges.cloudflare.com/**", (route) => route.abort());
+    await page.emulateMedia({ colorScheme });
+    await page.goto("/upload");
+
+    await expect(page.getByRole("heading", { level: 1, name: "Upload Photos" })).toBeVisible();
+    await expect(page.getByText(/drop photos here/i)).toBeVisible();
+
+    // Turnstile is blocked above, so it can never solve — the button must
+    // stay disabled rather than let an upload through unverified.
+    await expect(page.getByRole("button", { name: /send to the booth/i })).toBeDisabled();
+
+    const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+    expect(results.violations).toEqual([]);
+  });
+}
+
+test("/recover requires a code before it can be submitted", async ({ page }) => {
+  await page.goto("/recover");
+  await expect(page.getByRole("heading", { level: 1, name: "Recover My Package" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /recover my package/i })).toBeDisabled();
+
+  await page.getByLabel(/recovery code/i).fill("SOME-CODE");
+  await expect(page.getByRole("button", { name: /recover my package/i })).toBeEnabled();
+});
+
+test("home page links navigate to Upload Photos and Recover My Package", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "Upload Photos" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Recover My Package" })).toBeVisible();
+  await page.getByRole("button", { name: "Upload Photos" }).click();
+  await expect(page).toHaveURL(/\/upload$/);
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Recover My Package" }).click();
+  await expect(page).toHaveURL(/\/recover$/);
 });
 
 test("an unknown route renders the themed error page with no a11y violations", async ({ page }) => {
