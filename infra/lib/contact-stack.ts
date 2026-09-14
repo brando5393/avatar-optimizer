@@ -7,9 +7,8 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as ses from "aws-cdk-lib/aws-ses";
 import { Construct } from "constructs";
-import { DOMAIN_NAME, TURNSTILE_SECRET_ID, TURNSTILE_SECRET_READ_POLICY_ARN } from "./constants";
+import { DOMAIN_NAME, HOSTED_ZONE_ID, TURNSTILE_SECRET_ID, TURNSTILE_SECRET_READ_POLICY_ARN } from "./constants";
 
-const HOSTED_ZONE_ID = "Z06376742T1BU4DRI8T25";
 const MAIL_FROM_DOMAIN = `mail.${DOMAIN_NAME}`;
 const CONTACT_TO_ADDRESS = "brando5393@gmail.com";
 const CONTACT_FROM_ADDRESS = `no-reply@${DOMAIN_NAME}`;

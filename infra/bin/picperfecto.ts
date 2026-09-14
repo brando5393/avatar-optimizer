@@ -4,6 +4,7 @@ import * as cdk from "aws-cdk-lib";
 import { Tags } from "aws-cdk-lib";
 import { ContactStack } from "../lib/contact-stack";
 import { CoreStack } from "../lib/core-stack";
+import { FrontendStack } from "../lib/frontend-stack";
 import { ProcessingStack } from "../lib/processing-stack";
 
 const app = new cdk.App();
@@ -23,6 +24,7 @@ new ProcessingStack(app, "PicPerfectoProcessingStack", {
   rateLimitTable: coreStack.rateLimitTable,
   processingQueue: coreStack.processingQueue,
 });
+new FrontendStack(app, "PicPerfectoFrontendStack", { env });
 
 // Every resource this app owns must carry this tag: it is how the resource
 // shows up in the picperfecto-optimizer Resource Group, how spend is

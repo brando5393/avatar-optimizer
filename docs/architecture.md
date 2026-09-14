@@ -68,6 +68,23 @@ before the batch expires.
   multi-region trail logs all management events, so Secrets Manager/KMS/IAM
   access on this project's resources is audited without additional setup.
 
+## Publishing the frontend
+
+`PicPerfectoFrontendStack` (infra/lib/frontend-stack.ts) only provisions the
+S3 bucket, CloudFront distribution, ACM certificate, WAF Web ACL, and Route
+53 alias records — it does not upload the built site, so `cdk deploy` alone
+never puts stale or missing content in front of a live distribution and CI's
+`cdk synth` check doesn't depend on a build existing. To actually publish:
+
+```
+cd frontend && npm run build
+aws s3 sync frontend/build s3://<SiteBucketName> --delete
+aws cloudfront create-invalidation --distribution-id <DistributionId> --paths "/*"
+```
+
+`<SiteBucketName>` and `<DistributionId>` come from the stack's CfnOutputs
+(`aws cloudformation describe-stacks --stack-name PicPerfectoFrontendStack`).
+
 ## Accessibility
 
 WCAG 2.1 AA target:
@@ -115,3 +132,11 @@ backstop.
 - **Anonymous public storage is a cost-DoS vector** — the WAF rate limiting,
   Turnstile gate, and budget alarm are the layered mitigations; none of them
   alone is sufficient.
+- **WAF currently only covers the static site**, via `PicPerfectoFrontendStack`'s
+  Web ACL on CloudFront. The API's Lambda Function URLs
+  (`generate-upload-url`, `get-session`, `contact-form`) are still hit
+  directly and are not yet behind that same WAF — Turnstile and the
+  per-endpoint DynamoDB rate limits are today's only defense there. Routing
+  them through the same distribution closes this gap but changes CORS and
+  URL structure on stacks already live in production, so it's deliberately
+  a separate follow-up rather than bundled into the frontend-hosting work.
