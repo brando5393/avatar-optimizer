@@ -1,6 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, it } from "vitest";
 import { CoreStack } from "../lib/core-stack";
 import { ProcessingStack } from "../lib/processing-stack";
 
@@ -64,23 +64,25 @@ describe("ProcessingStack", () => {
     });
   });
 
-  it("grants rate-limit table write access to both public-facing endpoints, not just one", () => {
-    // generate-upload-url and get-session each get their own rate limit —
-    // process-upload is queue-triggered, not directly public, so it
-    // shouldn't have one.
-    const rateLimitGrants = template.findResources("AWS::IAM::Policy", {
-      Properties: {
-        PolicyDocument: Match.objectLike({
-          Statement: Match.arrayWith([
-            Match.objectLike({
-              Effect: "Allow",
-              Action: Match.arrayWith(["dynamodb:UpdateItem"]),
-            }),
-          ]),
-        }),
-      },
+  // Scoped to each function's own role, not just "some policy somewhere
+  // grants dynamodb:UpdateItem" — process-upload's unrelated sessionsTable
+  // write grant also includes that action, so an action-only check can't
+  // tell the rate-limit grant apart from it.
+  it.each([
+    ["generate-upload-url", "GenerateUploadUrlHandlerServiceRole"],
+    ["get-session", "GetSessionHandlerServiceRole"],
+  ])("grants %s's own role write access to the rate-limit table", (_name, roleLogicalIdPrefix) => {
+    template.hasResourceProperties("AWS::IAM::Policy", {
+      PolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Effect: "Allow",
+            Action: Match.arrayWith(["dynamodb:UpdateItem"]),
+          }),
+        ]),
+      }),
+      Roles: Match.arrayWith([Match.objectLike({ Ref: Match.stringLikeRegexp(`^${roleLogicalIdPrefix}`) })]),
     });
-    expect(Object.keys(rateLimitGrants)).toHaveLength(2);
   });
 
   it("tags every function with Project=picperfecto", () => {
