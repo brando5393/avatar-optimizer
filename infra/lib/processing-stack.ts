@@ -127,6 +127,7 @@ export class ProcessingStack extends Stack {
     });
     sessionsTable.grantReadData(getSessionFn);
     outputsBucket.grantRead(getSessionFn);
+    rateLimitTable.grantWriteData(getSessionFn);
     const getSessionFnUrl = getSessionFn.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
       cors: corsForFunctionUrl([lambda.HttpMethod.GET]),

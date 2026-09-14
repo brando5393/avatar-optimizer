@@ -1,5 +1,10 @@
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { checkRateLimit } from "../src/lib/rate-limit";
+
+vi.mock("../src/lib/rate-limit", () => ({
+  checkRateLimit: vi.fn(),
+}));
 
 const getSignedUrlMock = vi.fn();
 vi.mock("@aws-sdk/s3-request-presigner", () => ({
@@ -43,12 +48,29 @@ describe("get-session handler", () => {
     process.env.SESSIONS_TABLE = "sessions-table";
     process.env.OUTPUTS_BUCKET = "outputs-bucket";
     process.env.ALLOWED_ORIGIN = "https://picperfecto.com";
+    process.env.RATE_LIMIT_TABLE = "rate-limit-table";
     getSignedUrlMock.mockResolvedValue("https://s3.example/signed");
+    vi.mocked(checkRateLimit).mockResolvedValue({ allowed: true, count: 1, limit: 20 });
   });
 
   it("rejects non-GET methods", async () => {
     const result = await handler(makeEvent(VALID_TOKEN, "POST"));
     expect(result.statusCode).toBe(405);
+  });
+
+  it("returns 429 and never queries DynamoDB when rate limited", async () => {
+    vi.mocked(checkRateLimit).mockResolvedValue({ allowed: false, count: 21, limit: 20 });
+    const result = await handler(makeEvent(VALID_TOKEN));
+    expect(result.statusCode).toBe(429);
+    expect(ddbSendMock).not.toHaveBeenCalled();
+  });
+
+  it("scopes the rate limit check to this endpoint and the caller's IP", async () => {
+    ddbSendMock.mockResolvedValue({ Item: undefined });
+    await handler(makeEvent(VALID_TOKEN));
+    expect(checkRateLimit).toHaveBeenCalledWith(
+      expect.objectContaining({ scope: "get-session", identifier: "1.2.3.4", limit: 20 }),
+    );
   });
 
   it("rejects a missing token", async () => {

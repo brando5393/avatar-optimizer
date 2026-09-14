@@ -3,6 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
+import { checkRateLimit } from "../lib/rate-limit";
 import type { SessionRecord } from "../lib/session-record";
 import { isValidSessionTokenFormat } from "../lib/session-token";
 
@@ -10,6 +11,13 @@ const s3 = new S3Client({});
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 const DOWNLOAD_URL_EXPIRY_SECONDS = 15 * 60;
+
+// Recovery codes have 80 bits of entropy, so brute-forcing one is already
+// infeasible — this is defense-in-depth against enumeration/cost-DoS on the
+// lookup itself, generous enough for a person checking on their own batch a
+// few times while it processes.
+const RATE_LIMIT = 20;
+const RATE_LIMIT_WINDOW_SECONDS = 10 * 60;
 
 function jsonResponse(statusCode: number, body: unknown): APIGatewayProxyStructuredResultV2 {
   return {
@@ -31,6 +39,17 @@ function requireEnv(name: string): string {
 export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyStructuredResultV2> {
   if (event.requestContext.http.method !== "GET") {
     return jsonResponse(405, { error: "Method not allowed" });
+  }
+
+  const rateLimit = await checkRateLimit({
+    tableName: requireEnv("RATE_LIMIT_TABLE"),
+    identifier: event.requestContext.http.sourceIp,
+    scope: "get-session",
+    limit: RATE_LIMIT,
+    windowSeconds: RATE_LIMIT_WINDOW_SECONDS,
+  });
+  if (!rateLimit.allowed) {
+    return jsonResponse(429, { error: "Too many requests. Please try again later." });
   }
 
   const rawToken = event.queryStringParameters?.token;

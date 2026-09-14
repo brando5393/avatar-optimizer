@@ -1,6 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
-import { beforeAll, describe, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { CoreStack } from "../lib/core-stack";
 import { ProcessingStack } from "../lib/processing-stack";
 
@@ -64,17 +64,23 @@ describe("ProcessingStack", () => {
     });
   });
 
-  it("grants rate-limit table write access for the public-facing endpoints", () => {
-    template.hasResourceProperties("AWS::IAM::Policy", {
-      PolicyDocument: Match.objectLike({
-        Statement: Match.arrayWith([
-          Match.objectLike({
-            Effect: "Allow",
-            Action: Match.arrayWith(["dynamodb:UpdateItem"]),
-          }),
-        ]),
-      }),
+  it("grants rate-limit table write access to both public-facing endpoints, not just one", () => {
+    // generate-upload-url and get-session each get their own rate limit —
+    // process-upload is queue-triggered, not directly public, so it
+    // shouldn't have one.
+    const rateLimitGrants = template.findResources("AWS::IAM::Policy", {
+      Properties: {
+        PolicyDocument: Match.objectLike({
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Effect: "Allow",
+              Action: Match.arrayWith(["dynamodb:UpdateItem"]),
+            }),
+          ]),
+        }),
+      },
     });
+    expect(Object.keys(rateLimitGrants)).toHaveLength(2);
   });
 
   it("tags every function with Project=picperfecto", () => {
