@@ -16,6 +16,9 @@ infra/cdk.context.json
 .vscode/
 .idea/
 
+# Claude Code local settings (personal, per-machine)
+.claude/settings.local.json
+
 # OS
 .DS_Store
 Thumbs.db
